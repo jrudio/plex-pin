@@ -64,24 +64,8 @@ module.exports = (function(){
       // };
     // };
 
-    // We need header info such as: 
-    /*
-      X-Plex-Product=Plex+Web
-      X-Plex-Version=2.3.21
-      X-Plex-Client-Identifier=r4zsj3rp4r4wjyvi
-      X-Plex-Platform=Chrome
-      X-Plex-Platform-Version=41.0
-      X-Plex-Device=Linux
-      X-Plex-Device-Name=Plex+Web+(Chrome)
-      Accept-Language=en
-    */
 
-    var _url = plexUrl.reqPin;
-
-
-
-
-    return rp.get({ url: _url, headers: _headers });
+    return rp.get({ url: plexUrl.reqPin, headers: _headers });
   };
 
 /*  var checkPlexPin = function(requestId){
@@ -101,7 +85,7 @@ module.exports = (function(){
 
   return {
     test: true,
-    requestPlexPin: getPlexPin,
+    requestPlexPin: getPlexPin
 /*    checkAuth: checkPlexPin,
     getToken: getToken,
     setToken: setToken
