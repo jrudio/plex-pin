@@ -1,0 +1,29 @@
+{
+  "name": "plex-pin",
+  "description": "A Plex.tv PIN request module",
+  "author": "Justin Rudio",
+  "version": "0.0.1",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "jshint . && mocha test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jrudio/plex-pin.git"
+  },
+  "keywords": [
+
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jrudio/plex-pin/issues"
+  },
+  "homepage": "https://github.com/jrudio/plex-pin",
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "*"
+  }
+}
