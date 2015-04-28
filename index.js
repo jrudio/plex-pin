@@ -5,28 +5,38 @@ module.exports = (function(){
   // Require an HTTP package to make HTTP API calls
   var rp = require('request-promise');
 
-  var getInfo = function(str, regExp){
-    if(typeof str !== 'string'){ return null; };
-    if(typeof regExp !== 'object'){ return null; };
+  // var getInfo = function(str, regExp){
+  //   if(typeof str !== 'string'){ return null; }
+  //   if(typeof regExp !== 'object'){ return null; }
 
-    var extractedStr = str.match(regExp);
-    console.log('Info: ' + extractedStr);
-    return extractedStr ? extractedStr[0] : null;
-  };
+  //   var extractedStr = str.match(regExp);
+  //   console.log('Info: ' + extractedStr);
+  //   return extractedStr ? extractedStr[0] : null;
+  // };
 
 
-  var regEx = {
-    code: /\b\w+(?=<\/code>)/g,
-    authToken: /\w+(?=<auth_token)/g,
-    date: /([\w-:]+)(?=<\/expires-at>)/g,
-    reqId: /\b\w+(?=<\/id>)/g
-  };
+  // var regEx = {
+  //   code: /\b\w+(?=<\/code>)/g,
+  //   authToken: /\w+(?=<auth_token)/g,
+  //   date: /([\w-:]+)(?=<\/expires-at>)/g,
+  //   reqId: /\b\w+(?=<\/id>)/g
+  // };
 
   var plexUrl = {
     reqPin: 'https://plex.tv/pins.xml',
     /* End checkPin with '.xml' */
     checkPin: 'https://plex.tv/pins/'
   };
+
+  // var getToken = function(){
+  //   return this.authToken;
+  // };
+
+  // var setToken = function(token){
+  //   this.authToken = token;
+
+  //   return this;
+  // };
 
   var getPlexPin = function(_headers){
     
@@ -39,37 +49,20 @@ module.exports = (function(){
     */
 
     // Verify adequate information was provided
-    if(!_headers.hasOwnProperty('product' || !_headers.hasOwnProperty('version'))
-      || !_headers.hasOwnProperty('identifier') || !_headers.hasOwnProperty('platform')
-      || !_headers.hasOwnProperty('platformVersion') || !_headers.hasOwnProperty('device')
-      || !_headers.hasOwnProperty('deviceName') || !_headers.hasOwnProperty('language')){
+    if(typeof _headers !== 'object' || !_headers.hasOwnProperty('X-Plex-Product') || !_headers.hasOwnProperty('X-Plex-Version') || !_headers.hasOwnProperty('X-Plex-Client-Identifier') || !_headers.hasOwnProperty('X-Plex-Platform') || !_headers.hasOwnProperty('X-Plex-Platform-Version') || !_headers.hasOwnProperty('X-Plex-Device') || !_headers.hasOwnProperty('X-Plex-Device-Name') || !_headers.hasOwnProperty('Accept-Language')){
       throw new Error('Missing required header(s)');
-    };
+    }
 
-    var requestCB = function(body){
+    // var requestCB = function(body){
 
-      var fields = {
-        body: body,
-        token: getInfo(body, regEx.authToken),
-        code: getInfo(body, regEx.code),
-        expiresIn: getInfo(body, regEx.date),
-        reqId: getInfo(body, regEx.reqId)
-      };
-    };
-
-
-
-    // var requiredHeaders = [
-    //   'X-Plex-Product',
-    //   'X-Plex-Version',
-    //   'X-Plex-Client-Identifier',
-    //   'X-Plex-Platform',
-    //   'X-Plex-Platform-Version',
-    //   'X-Plex-Device',
-    //   'X-Plex-Device-Name',
-    //   'Accept-Language'
-    // ];
-
+      // var fields = {
+      //   body: body,
+      //   token: getInfo(body, regEx.authToken),
+      //   code: getInfo(body, regEx.code),
+      //   expiresIn: getInfo(body, regEx.date),
+      //   reqId: getInfo(body, regEx.reqId)
+      // };
+    // };
 
     // We need header info such as: 
     /*
@@ -83,6 +76,7 @@ module.exports = (function(){
       Accept-Language=en
     */
 
+    var _url = plexUrl.reqPin;
 
 
 
@@ -90,10 +84,10 @@ module.exports = (function(){
     return rp.get({ url: _url, headers: _headers });
   };
 
-  var checkPlexPin = function(requestId){
+/*  var checkPlexPin = function(requestId){
     var authToken;
 
-    var url = plexUrl.checkPin + requestId + '.xml';
+    // var url = plexUrl.checkPin + requestId + '.xml';
 
     // Poll https://plex.tv/pins/<requestId>.xml for authToken
 
@@ -103,12 +97,13 @@ module.exports = (function(){
     // return promise
 
     return authToken;
-  };
+  };*/
 
   return {
     test: true,
     requestPlexPin: getPlexPin,
-    checkAuth: checkPlexPin,
-    getAuthToken
-  };
+/*    checkAuth: checkPlexPin,
+    getToken: getToken,
+    setToken: setToken
+*/  };
 })();

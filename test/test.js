@@ -3,17 +3,38 @@
 var assert = require('assert');
 var plexPin = require('..');
 
-describe('is plex-pin property test available?', function() {
-
-  it('should return true', function() {
-    assert.equal(plexPin.test, true);
+describe('does requestPlexPin return expected values?', function() {
+  it('should be of type object', function(){
+    assert.equal(typeof plexPin, 'object');
   });
+
+  it('should have property test', function(){
+    assert.equal(plexPin.hasOwnProperty('test'), true);
+  });
+
+  it('should have property requestPlexPin', function(){
+    assert.equal(plexPin.hasOwnProperty('requestPlexPin'), true);
+  });
+
 });
 
-/*describe('is plex-pin available?', function() {
+describe('Lets test requestPin()', function() {
+  it('should return an object', function() {
+    var fakeHeaders = {
+      'X-Plex-Product': 'Plex+Web',
+      'X-Plex-Version': '2.3.21',
+      'X-Plex-Client-Identifier': 'r4zsj3rp4r4wjyvi',
+      'X-Plex-Platform': 'Chrome',
+      'X-Plex-Platform-Version': '41.0',
+      'X-Plex-Device': 'Linux',
+      'X-Plex-Device-Name': 'Plex+Web+(Chrome)',
+      'Accept-Language': 'en'
+    };
 
-  it('should do something awesome', function() {
-    assert.equal(plexPin(), true);
+    assert.equal(typeof plexPin.requestPlexPin(fakeHeaders), 'object');
+  });
+
+  it('should throw an error when the required headers are not present', function(){
+    assert.throws(function(){ return plexPin.requestPlexPin(); }, /Missing\srequired\sheader\(s\)/);
   });
 });
-*/
