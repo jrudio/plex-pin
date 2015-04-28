@@ -8,12 +8,20 @@ describe('does requestPlexPin return expected values?', function() {
     assert.equal(typeof plexPin, 'object');
   });
 
-  it('should have property test', function(){
-    assert.equal(plexPin.hasOwnProperty('test'), true);
-  });
-
   it('should have property requestPlexPin', function(){
     assert.equal(plexPin.hasOwnProperty('requestPlexPin'), true);
+  });
+
+  it('should have property regEx', function(){
+    assert.equal(plexPin.hasOwnProperty('regEx'), true);
+  });
+
+  it('should have property getCode', function(){
+    assert.equal(plexPin.hasOwnProperty('getCode'), true);
+  });
+
+  it('should have property setCode', function(){
+    assert.equal(plexPin.hasOwnProperty('setCode'), true);
   });
 
 });
