@@ -61,8 +61,8 @@ module.exports = (function(){
 
     // var requiredHeaders = [
     //   'X-Plex-Product',
-    //   'X-Plex-Version'
-,    //   'X-Plex-Client-Identifier',
+    //   'X-Plex-Version',
+    //   'X-Plex-Client-Identifier',
     //   'X-Plex-Platform',
     //   'X-Plex-Platform-Version',
     //   'X-Plex-Device',
