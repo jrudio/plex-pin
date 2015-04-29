@@ -1,7 +1,10 @@
 'use strict';
 
+// Require an HTTP package to make HTTP API calls
+var rp = require('request-promise');
 
-module.exports = (function(){
+module.exports = function(headers){
+  checkHeaders(headers);
   /*
     This app will accomplish:
     -Request a PIN from Plex.tv
@@ -10,107 +13,180 @@ module.exports = (function(){
     -Poll plex.tv pin page for token auth (Max 5 minutes) (Auth Token or Error)
   */
 
-  // Require an HTTP package to make HTTP API calls
-  var rp = require('request-promise');
 
-  // var getInfo = function(str, regExp){
-  //   if(typeof str !== 'string'){ return null; }
-  //   if(typeof regExp !== 'object'){ return null; }
+  /* Initialize properties */
+  this.token = null;
+  this.code = null;
+  this.date = null;
+  this.reqId = null;
+  this.headers = headers;
 
-  //   var extractedStr = str.match(regExp);
-  //   console.log('Info: ' + extractedStr);
-  //   return extractedStr ? extractedStr[0] : null;
-  // };
-
-
-  var regEx = {
-    code: /\b\w+(?=<\/code>)/g,
-    authToken: /\w+(?=<auth_token)/g,
-    date: /([\w-:]+)(?=<\/expires-at>)/g,
-    reqId: /\b\w+(?=<\/id>)/g
+  this.regEx = {
+   code: /\b\w+(?=<\/code>)/g,
+   authToken: /\w+(?=<\/auth_token)/g,
+   date: /([\w-:]+)(?=<\/expires-at>)/g,
+   reqId: /\b\w+(?=<\/id>)/g 
   };
 
-  var plexUrl = {
+  this.plexUrl = {
     reqPin: 'https://plex.tv/pins.xml',
     /* End checkPin with '.xml' */
     checkPin: 'https://plex.tv/pins/'
   };
 
-  /* Request Id */
-  var getReqId = function(){
-    return this.reqId;
-  };
+  /* Methods */
+  this.getPin = getPlexPin;
+  this.checkPin = checkPlexPin;
 
-  var setReqId = function(id){
-    this.reqId = id;
+  this.grabCode = extractCode;
+  this.grabReqId = extractRequestId;
+  this.grabDate = extractDate;
+  this.grabToken = extractToken;
 
-    return this;
-  };
+  this.setCode = setCode;
+  this.setReqId = setReqId;
+  this.setToken = setToken;
+  this.setDate = setDate;
 
-  /* Date */
-  var getDate = function(){
-    return this.date;
-  };
+};
 
-  var setDate = function(date){
-    this.date = date;
+function checkHeaders(_headers){
+  if(typeof _headers !== 'object' || !_headers.hasOwnProperty('X-Plex-Product') || !_headers.hasOwnProperty('X-Plex-Version') || !_headers.hasOwnProperty('X-Plex-Client-Identifier') || !_headers.hasOwnProperty('X-Plex-Platform') || !_headers.hasOwnProperty('X-Plex-Platform-Version') || !_headers.hasOwnProperty('X-Plex-Device') || !_headers.hasOwnProperty('X-Plex-Device-Name') || !_headers.hasOwnProperty('Accept-Language')){
+    throw new Error('Missing required header(s)');
+  }
+};
 
-    return this;
-  };
+function getInfo(str, regExp){
+  if(typeof str !== 'string'){ return null; }
+  if(typeof regExp !== 'object'){ return null; }
 
-  var getToken = function(){
-    return this.token;
-  };
+  var extractedStr = str.match(regExp);
+  console.log("Extacted String: " + extractedStr);
+  return extractedStr ? extractedStr[0] : null;
+};
 
-  var setToken = function(token){
-    this.token = token;
+function setCode(code){
+  this.code = code;
+};
 
-    return this;
-  };
+function setReqId(id){
+  this.reqId = id;
+};
 
-  var getCode = function(){
-    return this.code;
-  };
+function setToken(token){
+  this.token = token;
+};
 
-  var setCode = function(code){
-    this.code = code;
+function setDate(date){
+  this.date = date;
+};
 
-    return this;
-  };
+/* Code */
+function extractCode(str){
+  var codeRegEx = this.regEx.code;
+  return getInfo(str, codeRegEx);
+};
 
-  var getPlexPin = function(_headers){
-    // Verify adequate information was provided
-    if(typeof _headers !== 'object' || !_headers.hasOwnProperty('X-Plex-Product') || !_headers.hasOwnProperty('X-Plex-Version') || !_headers.hasOwnProperty('X-Plex-Client-Identifier') || !_headers.hasOwnProperty('X-Plex-Platform') || !_headers.hasOwnProperty('X-Plex-Platform-Version') || !_headers.hasOwnProperty('X-Plex-Device') || !_headers.hasOwnProperty('X-Plex-Device-Name') || !_headers.hasOwnProperty('Accept-Language')){
-      throw new Error('Missing required header(s)');
+/* Request Id */
+function extractRequestId(str){
+  var requestIdRegEx = this.regEx.reqId;
+  return getInfo(str, requestIdRegEx);
+};
+
+/* Authentication Token */
+function extractToken(str){
+  var token = this.regEx.authToken;
+  return getInfo(str, token);
+};
+
+/* Date */
+function extractDate(str){
+  var date = this.regEx.date;
+  return getInfo(str, date);
+};
+
+var getPlexPin = function(){
+  var self = this;
+
+  var url = self.plexUrl.reqPin;
+
+  return rp.post({ url: url, headers: self.headers });
+};
+
+var checkPlexPin = function(){
+  // Type-check arguments
+  var self = this;
+
+  var requestId = self.reqId;
+
+  if(!requestId){ throw new Error('Request Id is needed'); };
+
+  var _headers = self.headers;
+
+  var _url = plexUrl.checkPin + requestId + '.xml';
+
+  // Poll https://plex.tv/pins/<requestId>.xml for authToken
+
+/*
+  .then(function(response){
+    var token = getInfo(response, regEx.authToken);
+
+    console.log('Response Token: ' + token);
+
+    if(token){
+      console.log('Token was found!', 'You are now authorized!');
+
+      // Attach to this.token
+      setToken(token);
+
+      // Cancel timer
+      clearInterval(self.timer);
+
     }
+    else{
+      console.log('Token was not found');
+    }
+  }).catch(function(error){
+    console.log('There was an error in your request');
 
-    return rp.post({ url: plexUrl.reqPin, headers: _headers });
-  };
+    console.error(error.keys);
 
-/*  var checkPlexPin = function(requestId){
-    var authToken;
+    if(error.statusCode === 404){
+      console.log('Your code has expired');
+    }
+  });
+*/
+  return rp.get({ url: _url, headers: _headers });
+};
 
-    // var url = plexUrl.checkPin + requestId + '.xml';
+/*var getDate = function(){
+  return this.date;
+};
 
-    // Poll https://plex.tv/pins/<requestId>.xml for authToken
+var setDate = function(date){
+  this.date = date;
 
+  return this;
+};
 
-    // Stop poll when authToken is found
+var getToken = function(){
+  return this.token;
+};
 
-    // return promise
+var setToken = function(token){
+  this.token = token;
 
-    return authToken;
-  };*/
+  return this;
+};
 
-  return {
-    requestPlexPin: getPlexPin,
-    regEx: regEx,
-/*    checkAuth: checkPlexPin,
-*/    getCode: getCode,
-    setCode: setCode
-    getToken: getToken,
-    setToken: setToken
-    getDate: getDate,
-    setDate: setDate
-  };
-})();
+var getCode = function(){
+  return this.code;
+};
+
+var setCode = function(code){
+  this.code = code;
+
+  return this;
+};
+
+*/
