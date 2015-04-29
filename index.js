@@ -123,7 +123,7 @@ var checkPlexPin = function(){
 
   var _headers = self.headers;
 
-  var _url = plexUrl.checkPin + requestId + '.xml';
+  var _url = self.plexUrl.checkPin + requestId + '.xml';
 
   // Poll https://plex.tv/pins/<requestId>.xml for authToken
 
