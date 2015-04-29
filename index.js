@@ -10,7 +10,7 @@ module.exports = function(headers){
     -Request a PIN from Plex.tv
       - Needs _headers
       - Client Identifier === App name
-    -Poll plex.tv pin page for token auth (Max 5 minutes) (Auth Token or Error)
+    -Poll plex.tv pin page for token auth (Max 5 minutes) (Auth Token or Error) 
   */
 
 
@@ -127,66 +127,5 @@ var checkPlexPin = function(){
 
   // Poll https://plex.tv/pins/<requestId>.xml for authToken
 
-/*
-  .then(function(response){
-    var token = getInfo(response, regEx.authToken);
-
-    console.log('Response Token: ' + token);
-
-    if(token){
-      console.log('Token was found!', 'You are now authorized!');
-
-      // Attach to this.token
-      setToken(token);
-
-      // Cancel timer
-      clearInterval(self.timer);
-
-    }
-    else{
-      console.log('Token was not found');
-    }
-  }).catch(function(error){
-    console.log('There was an error in your request');
-
-    console.error(error.keys);
-
-    if(error.statusCode === 404){
-      console.log('Your code has expired');
-    }
-  });
-*/
   return rp.get({ url: _url, headers: _headers });
 };
-
-/*var getDate = function(){
-  return this.date;
-};
-
-var setDate = function(date){
-  this.date = date;
-
-  return this;
-};
-
-var getToken = function(){
-  return this.token;
-};
-
-var setToken = function(token){
-  this.token = token;
-
-  return this;
-};
-
-var getCode = function(){
-  return this.code;
-};
-
-var setCode = function(code){
-  this.code = code;
-
-  return this;
-};
-
-*/
