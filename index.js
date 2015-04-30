@@ -1,131 +1,101 @@
 'use strict';
 
 // Require an HTTP package to make HTTP API calls
-var rp = require('request-promise');
+var RP = require('request-promise');
 
 module.exports = function(headers){
   checkHeaders(headers);
-  /*
-    This app will accomplish:
-    -Request a PIN from Plex.tv
-      - Needs _headers
-      - Client Identifier === App name
-    -Poll plex.tv pin page for token auth (Max 5 minutes) (Auth Token or Error) 
-  */
 
-
-  /* Initialize properties */
-  this.token = null;
-  this.code = null;
-  this.date = null;
-  this.reqId = null;
   this.headers = headers;
 
   this.regEx = {
-   code: /\b\w+(?=<\/code>)/g,
+   pin: /\b\w+(?=<\/code>)/g,
    authToken: /\w+(?=<\/auth_token)/g,
-   date: /([\w-:]+)(?=<\/expires-at>)/g,
-   reqId: /\b\w+(?=<\/id>)/g 
+   expireTime: /([\w-:]+)(?=<\/expires-at>)/g,
+   requestId: /\b\w+(?=<\/id>)/g 
   };
 
   this.plexUrl = {
-    reqPin: 'https://plex.tv/pins.xml',
+    requestPin: 'https://plex.tv/pins.xml',
     /* End checkPin with '.xml' */
     checkPin: 'https://plex.tv/pins/'
   };
+};
 
-  /* Methods */
-  this.getPin = getPlexPin;
-  this.checkPin = checkPlexPin;
+module.exports.prototype.requestPin = function(){
+  var url = this.plexUrl.requestPin;
 
-  this.grabCode = extractCode;
-  this.grabReqId = extractRequestId;
-  this.grabDate = extractDate;
-  this.grabToken = extractToken;
+  var _headers = this.headers;
 
-  this.setCode = setCode;
-  this.setReqId = setReqId;
-  this.setToken = setToken;
-  this.setDate = setDate;
+  return RP.post(url, { headers: _headers });
+};
 
+module.exports.prototype.checkPin = function(requestId){
+  var url = this.plexUrl.checkPin;
+
+  url += requestId + '.xml';
+
+  var _headers = this.headers;
+
+  return RP.get(url, { headers: _headers });
+};
+
+module.exports.prototype.setPin = function(plexResponse){
+
+  var codeRegEx = this.regEx.pin;
+
+  plexResponse = getInfo(plexResponse, codeRegEx);
+
+  this.pin = plexResponse;
+};
+
+module.exports.prototype.setRequestId = function(plexResponse){
+  var reqIdRegEx = this.regEx.requestId;
+
+  plexResponse = getInfo(plexResponse, reqIdRegEx);
+
+  this.requestId = plexResponse;
+};
+
+module.exports.prototype.setExpireTime = function(plexResponse){
+  var expireTimeRegEx = this.regEx.expireTime;
+
+  plexResponse = getInfo(plexResponse, expireTimeRegEx);
+
+  this.expireTime = plexResponse;
+};
+
+module.exports.prototype.setAuthToken = function(plexResponse){
+  var authTokenRegEx = this.regEx.authToken;
+
+  plexResponse = getInfo(plexResponse, authTokenRegEx);
+
+  this.authToken = plexResponse;
+};
+
+module.exports.prototype.getPin = function(){
+  return this.pin;
+};
+
+module.exports.prototype.getRequestId = function(){
+  return this.requestId;
+};
+
+module.exports.prototype.getExpireTime = function(){
+  return this.expireTime;
+};
+
+module.exports.prototype.getAuthToken = function(){
+  return this.authToken;
 };
 
 function checkHeaders(_headers){
   if(typeof _headers !== 'object' || !_headers.hasOwnProperty('X-Plex-Product') || !_headers.hasOwnProperty('X-Plex-Version') || !_headers.hasOwnProperty('X-Plex-Client-Identifier') || !_headers.hasOwnProperty('X-Plex-Platform') || !_headers.hasOwnProperty('X-Plex-Platform-Version') || !_headers.hasOwnProperty('X-Plex-Device') || !_headers.hasOwnProperty('X-Plex-Device-Name') || !_headers.hasOwnProperty('Accept-Language')){
     throw new Error('Missing required header(s)');
   }
-};
+}
 
 function getInfo(str, regExp){
-  if(typeof str !== 'string'){ return null; }
-  if(typeof regExp !== 'object'){ return null; }
-
   var extractedStr = str.match(regExp);
-  console.log("Extacted String: " + extractedStr);
   return extractedStr ? extractedStr[0] : null;
-};
-
-function setCode(code){
-  this.code = code;
-};
-
-function setReqId(id){
-  this.reqId = id;
-};
-
-function setToken(token){
-  this.token = token;
-};
-
-function setDate(date){
-  this.date = date;
-};
-
-/* Code */
-function extractCode(str){
-  var codeRegEx = this.regEx.code;
-  return getInfo(str, codeRegEx);
-};
-
-/* Request Id */
-function extractRequestId(str){
-  var requestIdRegEx = this.regEx.reqId;
-  return getInfo(str, requestIdRegEx);
-};
-
-/* Authentication Token */
-function extractToken(str){
-  var token = this.regEx.authToken;
-  return getInfo(str, token);
-};
-
-/* Date */
-function extractDate(str){
-  var date = this.regEx.date;
-  return getInfo(str, date);
-};
-
-var getPlexPin = function(){
-  var self = this;
-
-  var url = self.plexUrl.reqPin;
-
-  return rp.post({ url: url, headers: self.headers });
-};
-
-var checkPlexPin = function(){
-  // Type-check arguments
-  var self = this;
-
-  var requestId = self.reqId;
-
-  if(!requestId){ throw new Error('Request Id is needed'); };
-
-  var _headers = self.headers;
-
-  var _url = self.plexUrl.checkPin + requestId + '.xml';
-
-  // Poll https://plex.tv/pins/<requestId>.xml for authToken
-
-  return rp.get({ url: _url, headers: _headers });
-};
+}
