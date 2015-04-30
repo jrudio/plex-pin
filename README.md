@@ -9,6 +9,9 @@ This repository is intended to be for the npm version.
 
 I will create a repository for a Meteor package.
 
+#v0.04
+Cleaned up and combined some functions.
+
 ## Installation
 
 ```bash
