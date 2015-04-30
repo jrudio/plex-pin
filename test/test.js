@@ -67,4 +67,14 @@ describe('PlexPin', function() {
     });
     
   });
+
+  it('should give a 404 error when supplying a bad requestId to checkPin()', function() {
+    var requestId = '123456';
+
+    plexPin.checkPin(requestId).catch(function(error){
+      
+      assert(error.statusCode, 404);
+    });
+    
+  });
 });
