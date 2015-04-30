@@ -3,7 +3,7 @@
 A Plex.tv PIN request module
 
 ## Note
-The point of this package is so you can easily create an app that requires authentication without the user needing to input the credentials of the plex account and instead use the Plex.tv/pin api to get an authorize users via PIN.
+The point of this package is so you can easily create an app that requires myPlex authentication without the user needing to input the credentials of the plex account and instead use the Plex.tv/pin api to get an authorization token for users via PIN.
 
 This repository is intended to be for the npm version. 
 
@@ -20,10 +20,10 @@ npm install --save plex-pin
 ```javascript
 var PlexPin = require('plex-pin');
 
-var headers = {
+var fakeHeaders = {
   'X-Plex-Product': 'Plex+Web',
   'X-Plex-Version': '2.3.21',
-  'X-Plex-Client-Identifier': 'a5zsj42p4r4wjyvi',
+  'X-Plex-Client-Identifier': 'r4zsj3rp4r4wjyvi',
   'X-Plex-Platform': 'Chrome',
   'X-Plex-Platform-Version': '41.0',
   'X-Plex-Device': 'Linux',
@@ -31,65 +31,49 @@ var headers = {
   'Accept-Language': 'en'
 };
 
-var plexPin = new PlexPin(headers);
+var plexPin = new PlexPin(fakeHeaders);
 
-// Returns promise
-plexPin.getPin(); // => promise
+// Request Pin
+plexPin.requestPin().then(function(result){
 
-plexPin.getPin().then(function(result){
-  var code = plexPin.grabCode(result);
-  var expiration = plexPin.grabDate(result);
-  var requestId = plexPin.grabReqId(result);
+  // PIN expires in 5 minutes
+  plexPin.setExpireTime(result);
+  plexPin.setPin(result);
+  plexPin.setRequestId(result);
 
-  plexPin.setCode(code);
-  plexPin.setReqId(requestId);
-
-  console.log('Code: %s', plexPin.code);
-  console.log('Request Id: %s', plexPin.reqId);
-  console.log('Expiration Time: %s', expiration);
+  console.log('Code: %s', plexPin.getPin());
+  console.log('Request Id: %s', plexPin.getRequestId());
+  console.log('Expiration Time: %s', plexPin.getExpireTime());
 }).catch(function(error){
-  console.error('Error requesting PIN: ' + error.statusCode);
+  console.error('Error requesting PIN: ' + error);
 });
 
-<!-- Get Code that has been set -->
-plexPin.code; => 'HY67'
+var requestId = '11465703';
 
-<!-- ID to monitor page for authToken -->
-plexPin.reqId; => '11429629'
+/* Realtime applications put the following into an interval && end interval within 5 minutes */
 
-<!-- Auth Token -->
-plexPin.token; => 'sdfhhf3232njr3nfi32ni32'
+// Check Authorization of PIN
+plexPin.checkPin(requestId).then(function(result){
 
-<!-- Expiration Date/Time -->
-plexPin.date; => '2015-04-29T08:31:08Z'
+  // Looks for auth_token via regex & sets it
+  plexPin.setAuthToken(result);
 
-plexPin.grabCode(result) => returns code from result of promise via regex
-plexPin.grabToken(result) => returns token from result of promise via regex
-plexPin.grabReqId(result) => returns request Id from result of promise via regex
-plexPin.grabDate(result) => returns expiration date/time from result of promise via regex
-
-plexPin.checkPin() => promise
-
-<!-- Checks authorization -->
-plexPin.checkPin().then(function(result){
-  var token = plexPin.grabToken(result);
-
-  if(!token){
+  // If token was not attached to PlexPin then one was not found
+  if(!plexPin.getAuthToken()){
     console.log('You are not authorized');
   }
   else{
 
-    plexPin.setToken(token);
+    // Notify user they are authorized
+    console.log('You are authorized!', '\n You can access the token via plexPin.getAuthToken()');
 
-    console.log('You are authorized!', '\n You can access the token via plexPin.token');
-
-    console.log('Token: %s', plexPin.token);
+    console.log('Token: %s', plexPin.getAuthToken());
   }
 }).catch(function(error){
   console.error('Error Checking PIN: ' + error.statusCode);
 
   if(error.statusCode === 404){
-    console.log('Your code has expired');
+    console.log('Your pin has expired');
   }
 });
 ```
