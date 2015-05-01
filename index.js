@@ -30,8 +30,14 @@ module.exports.prototype.requestPin = function(){
   return RP.post(url, { headers: _headers });
 };
 
-module.exports.prototype.checkPin = function(requestId){
+module.exports.prototype.checkPin = function(requestPin){
   var url = this.plexUrl.checkPin;
+
+  var requestId = requestPin || this.requestId;
+
+  if(requestId === undefined){
+    throw new Error('RequestId is not set');
+  }
 
   url += requestId + '.xml';
 
