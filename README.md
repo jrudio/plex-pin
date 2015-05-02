@@ -9,12 +9,6 @@ This repository is intended to be for the npm version.
 
 I will create a repository for a Meteor package.
 
-#v0.0.5
-checkPin() requestId is optional
-
-#v0.0.4
-Cleaned up and combined some functions
-
 ## Installation
 
 ```bash
@@ -83,6 +77,13 @@ plexPin.checkPin(requestId).then(function(result){
   }
 });
 ```
+
+#v0.0.5
+checkPin() requestId is optional
+
+#v0.0.4
+Cleaned up and combined some functions
+
 
 ## License
 
